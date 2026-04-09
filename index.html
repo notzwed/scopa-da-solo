@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scopa da Solo</title>
+    <meta
+      name="description"
+      content="Scopa da Solo in stile classico, con drag and drop e carte leggibili su ogni schermo."
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-deck-style="classic">
+    <div class="app-shell">
+      <header class="hud">
+        <div class="hud-brand">
+          <span class="hud-title">Scopa da Solo</span>
+          <span class="hud-subtitle">Classico</span>
+        </div>
+
+        <div id="hud-bank" class="hud-bank" aria-live="polite">
+          <img
+            class="hud-bank-icon"
+            src="assets/Progetto_senza_titolo-removebg-preview.png"
+            alt=""
+            aria-hidden="true"
+          >
+          <div class="hud-bank-copy" aria-label="Monete del giocatore">
+            <strong id="coin-count" class="hud-bank-value">0</strong>
+          </div>
+          <span id="coin-gain" class="hud-bank-gain" aria-hidden="true"></span>
+        </div>
+
+        <div class="hud-actions">
+          <button id="new-game-btn" class="button button-primary" type="button">
+            Nuova partita
+          </button>
+        </div>
+      </header>
+
+      <main class="table-screen">
+        <section id="felt-board" class="felt-board">
+          <div class="board-top">
+            <div class="stock-zone">
+              <div id="deck-stack" class="deck-stack" aria-hidden="true"></div>
+              <div class="stock-copy">
+                <span>Mazzo residuo</span>
+                <strong id="deck-left-count">33</strong>
+              </div>
+            </div>
+
+            <div class="capture-zone">
+              <div id="capture-pile" class="capture-pile" aria-hidden="true"></div>
+              <div class="capture-copy">
+                <span>Prese</span>
+                <strong id="table-count">4</strong>
+              </div>
+            </div>
+          </div>
+
+          <div id="table-zone" class="table-zone" aria-live="polite"></div>
+          <div id="move-targets" class="move-targets" aria-live="polite"></div>
+
+          <div class="board-footer">
+            <div class="footer-stats">
+              <span>Tavolo <strong id="table-left-count">4</strong></span>
+              <span>Mano <strong id="hand-count">3</strong></span>
+              <span>Turni <strong id="turn-count">0</strong></span>
+            </div>
+          </div>
+
+          <div id="hand-zone" class="hand-zone" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+
+    <section id="start-screen" class="start-screen visible" aria-live="polite">
+      <div class="start-panel">
+        <p class="menu-kicker">Scopa da Solo</p>
+        <h1>Un tavolo semplice, pulito, diretto.</h1>
+        <p class="start-copy">
+          Tre carte in mano, quattro sul tavolo. Fai piu scope possibile: ogni 2 carte rimaste sul tavolo valgono -1, e vinci se il totale finale resta dispari e positivo.
+        </p>
+
+        <div class="start-footer">
+          <div class="start-record">
+            <span>Record migliore</span>
+            <strong id="start-best-scope">0 scope</strong>
+          </div>
+
+          <div class="start-actions">
+            <button id="reset-best-btn" class="button button-ghost" type="button">
+              Azzera record
+            </button>
+            <button id="start-game-btn" class="button button-primary" type="button">
+              Nuova partita
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="game-over-banner" class="game-over hidden" aria-live="polite">
+      <div class="game-over-card">
+        <p id="game-over-kicker" class="menu-kicker">Partita finita</p>
+        <h2 id="game-over-title">Risultato finale</h2>
+        <p id="game-over-detail"></p>
+        <div class="game-over-actions">
+          <button id="play-again-btn" class="button button-primary" type="button">
+            Nuova partita
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <script src="game-logic.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
