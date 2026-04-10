@@ -12,6 +12,8 @@
   const COIN_REWARD_PER_CAPTURED_CARD = 1;
   const COIN_REWARD_SCOPA_BONUS = 6;
   const COIN_REWARD_CLEAN_TABLE_BONUS = 12;
+  const COIN_REWARD_END_GAME_LOSS = 10;
+  const COIN_REWARD_END_GAME_WIN = 15;
   const CLASSIC_RATIO = "680 / 980";
   const FACE_SPRITE_SHEET = {
     path: "playingCards.svg",
@@ -37,6 +39,12 @@
     redModelColumn: 3,
     redModelRow: 0
   };
+  const coarsePointerMedia =
+    typeof window.matchMedia === "function" ? window.matchMedia("(pointer: coarse)") : null;
+  const reducedMotionMedia =
+    typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
   const DISPLAY_RANK = {
     1: "A",
     8: "J",
@@ -174,6 +182,7 @@
     moveTargets: document.getElementById("move-targets"),
     feltBoard: document.getElementById("felt-board"),
     deckStack: document.getElementById("deck-stack"),
+    scopeTracker: document.getElementById("scope-tracker"),
     capturePile: document.getElementById("capture-pile"),
     startScreen: document.getElementById("start-screen"),
     startGameButton: document.getElementById("start-game-btn"),
@@ -193,6 +202,19 @@
   };
 
   document.documentElement.style.setProperty("--card-ratio", CLASSIC_RATIO);
+  updateViewportHeight();
+
+  function updateViewportHeight() {
+    document.documentElement.style.setProperty("--app-height", window.innerHeight + "px");
+  }
+
+  function prefersTouchLayout() {
+    return (coarsePointerMedia && coarsePointerMedia.matches) || window.innerWidth <= 1024;
+  }
+
+  function animationTimingMultiplier() {
+    return prefersTouchLayout() ? 1.08 : 0.86;
+  }
 
   function loadBestScope() {
     try {
@@ -273,6 +295,14 @@
       hasWon: hasWon,
       parityLabel: Math.abs(finalScore) % 2 === 1 ? "dispari" : "pari"
     };
+  }
+
+  function getEndGameCoinBonus(game) {
+    if (!game || !game.gameOver) {
+      return 0;
+    }
+
+    return getVictoryOutcome(game).hasWon ? COIN_REWARD_END_GAME_WIN : COIN_REWARD_END_GAME_LOSS;
   }
 
   function totalCardCount(game) {
@@ -390,6 +420,59 @@
     element.innerHTML = Array.from({ length: safeCount })
       .map(function (_, index) {
         return buildBackMarkup(index, safeCount, kind);
+      })
+      .join("");
+  }
+
+  function scopeMarkerStyle(index, total) {
+    const centerOffset = index - (total - 1) / 2;
+    const offsetX = centerOffset * (total <= 4 ? 12 : 10);
+    const offsetY = Math.min(index * 5, 18);
+    const rotation = centerOffset * 2.4;
+
+    return (
+      "left:calc(50% + " +
+      offsetX.toFixed(2) +
+      "px);top:" +
+      offsetY.toFixed(2) +
+      "px;transform:translate(-50%, 0) rotate(" +
+      (90 + rotation).toFixed(2) +
+      "deg);z-index:" +
+      (index + 1) +
+      ";"
+    );
+  }
+
+  function renderScopeTracker(count) {
+    if (!refs.scopeTracker) {
+      return;
+    }
+
+    const safeCount = Math.max(0, count || 0);
+    const previousCount = Number(refs.scopeTracker.dataset.count || 0);
+    refs.scopeTracker.dataset.count = String(safeCount);
+    refs.scopeTracker.setAttribute(
+      "aria-label",
+      safeCount === 1 ? "1 scopa fatta" : safeCount + " scope fatte"
+    );
+
+    if (safeCount === previousCount && safeCount !== 0) {
+      return;
+    }
+
+    refs.scopeTracker.innerHTML = Array.from({ length: safeCount })
+      .map(function (_, index) {
+        const isFresh = safeCount > previousCount && index >= previousCount;
+
+        return (
+          '<span class="scope-marker' +
+          (isFresh ? " is-fresh" : "") +
+          '" aria-hidden="true" style="' +
+          scopeMarkerStyle(index, safeCount) +
+          '"><span class="scope-marker-shell">' +
+          buildBackSpriteMarkup() +
+          "</span></span>"
+        );
       })
       .join("");
   }
@@ -677,6 +760,7 @@
     refs.deckLeftCount.textContent = state.displayCounts.deck;
     refs.tableCount.textContent = state.displayCounts.captured;
     renderBackStack(refs.deckStack, state.displayCounts.deck, "deck");
+    renderScopeTracker(state.game.scopeCount);
     renderBackStack(refs.capturePile, state.displayCounts.captured, "capture");
   }
 
@@ -873,12 +957,15 @@
     }
 
     const outcome = getVictoryOutcome(state.game);
+    const endGameBonus = getEndGameCoinBonus(state.game);
     refs.gameOverKicker.classList.add("hidden");
     refs.gameOverTitle.textContent = outcome.hasWon ? "Vittoria" : "Sconfitta";
     refs.gameOverDetail.innerHTML =
       '<strong class="game-over-coins-label">Monete</strong> <span class="game-over-coins-value">' +
       escapeHtml(formatCoinCount(state.coins)) +
-      "</span>";
+      '</span> <span class="game-over-coins-bonus">+' +
+      escapeHtml(formatCoinCount(endGameBonus)) +
+      " bonus finale</span>";
   }
 
   function render() {
@@ -1265,7 +1352,26 @@
   }
 
   function animateNode(node, keyframes, options) {
-    const animation = node.animate(keyframes, options);
+    if (!node || typeof node.animate !== "function") {
+      return Promise.resolve();
+    }
+
+    if (reducedMotionMedia && reducedMotionMedia.matches) {
+      return Promise.resolve();
+    }
+
+    const animationOptions = Object.assign({}, options);
+    const multiplier = animationTimingMultiplier();
+
+    if (typeof animationOptions.duration === "number") {
+      animationOptions.duration = Math.round(animationOptions.duration * multiplier);
+    }
+
+    if (typeof animationOptions.delay === "number") {
+      animationOptions.delay = Math.round(animationOptions.delay * multiplier);
+    }
+
+    const animation = node.animate(keyframes, animationOptions);
     return animation.finished.catch(function () {
       return undefined;
     });
@@ -1305,6 +1411,8 @@
     if (nextGame && nextGame.gameOver && nextGame.table.length === 0) {
       reward += COIN_REWARD_CLEAN_TABLE_BONUS;
     }
+
+    reward += getEndGameCoinBonus(nextGame);
 
     return reward;
   }
@@ -1774,6 +1882,12 @@
   refs.newGameButton.addEventListener("click", startNewGame);
   refs.resetBestButton.addEventListener("click", resetBestScope);
   refs.playAgainButton.addEventListener("click", startNewGame);
+  window.addEventListener("resize", updateViewportHeight);
+  window.addEventListener("orientationchange", updateViewportHeight);
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", updateViewportHeight);
+  }
 
   render();
 })();

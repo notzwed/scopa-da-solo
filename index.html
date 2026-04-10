@@ -18,23 +18,22 @@
           <span class="hud-subtitle">Classico</span>
         </div>
 
-        <div id="hud-bank" class="hud-bank" aria-live="polite">
-          <img
-            class="hud-bank-icon"
-            src="assets/Progetto_senza_titolo-removebg-preview.png"
-            alt=""
-            aria-hidden="true"
-          >
-          <div class="hud-bank-copy" aria-label="Monete del giocatore">
-            <strong id="coin-count" class="hud-bank-value">0</strong>
-          </div>
-          <span id="coin-gain" class="hud-bank-gain" aria-hidden="true"></span>
-        </div>
-
         <div class="hud-actions">
           <button id="new-game-btn" class="button button-primary" type="button">
             Nuova partita
           </button>
+          <div id="hud-bank" class="hud-bank" aria-live="polite">
+            <img
+              class="hud-bank-icon"
+              src="assets/Progetto_senza_titolo__1_-removebg-preview (2) (1).png"
+              alt=""
+              aria-hidden="true"
+            >
+            <div class="hud-bank-copy" aria-label="Monete del giocatore">
+              <strong id="coin-count" class="hud-bank-value">0</strong>
+            </div>
+            <span id="coin-gain" class="hud-bank-gain" aria-hidden="true"></span>
+          </div>
         </div>
       </header>
 
@@ -42,7 +41,9 @@
         <section id="felt-board" class="felt-board">
           <div class="board-top">
             <div class="stock-zone">
-              <div id="deck-stack" class="deck-stack" aria-hidden="true"></div>
+              <div class="stock-visuals">
+                <div id="deck-stack" class="deck-stack" aria-hidden="true"></div>
+              </div>
               <div class="stock-copy">
                 <span>Mazzo residuo</span>
                 <strong id="deck-left-count">33</strong>
@@ -50,7 +51,10 @@
             </div>
 
             <div class="capture-zone">
-              <div id="capture-pile" class="capture-pile" aria-hidden="true"></div>
+              <div class="capture-visuals">
+                <div id="scope-tracker" class="scope-tracker" aria-label="0 scope fatte"></div>
+                <div id="capture-pile" class="capture-pile" aria-hidden="true"></div>
+              </div>
               <div class="capture-copy">
                 <span>Prese</span>
                 <strong id="table-count">4</strong>
